@@ -3,7 +3,9 @@
 {-# LANGUAGE Arrows #-}
 
 module TypeChecker
-where
+( check
+, check'
+) where
 
 import Prelude hiding (and, not, fail, const, id, (.), drop, exp)
 import qualified Prelude as P (id, (.), not)
@@ -79,15 +81,14 @@ branch :: (ArrowChoice a, ArrowFail a) => a (Int, [Frame], [Type]) [Frame]
 branch = proc (n, frs, tys) -> do
     frs2 <- drop -< (n, frs)
     case frs2 of
-        []   -> fail -< "Invalid branch depth."
-        fr:_ -> do _ <- expTys -< (view (bl . rty) fr, tys)
-                   id -< frs2
+        []          -> fail -< "Invalid branch depth."
+        fr2hd:fr2tl -> do _ <- expTys -< (view (bl . rty) fr2hd, tys)
+                          id -< (branchInto fr2hd):fr2tl
 
-branchInto :: Frame -> Frame
-branchInto fr = set (bl P.. isB) [] fr
+check' :: Bl -> Either String [Type]
+check' b = (view getf run') ([BlockFrame b], [])
 
 check :: Bl -> String
-check b = case (view getf run') ([BlockFrame b], []) of
-    Right tys -> "No errors found. Return types: " ++ show (tys :: [Type]) ++
-                 "."
+check b = case check' b of
+    Right tys -> "No errors found. Return types: " ++ show tys ++ "."
     Left msg  -> msg

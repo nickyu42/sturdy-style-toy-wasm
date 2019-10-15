@@ -71,11 +71,5 @@ branch = drop >>> proc frs2 -> case frs2 of
     []     -> fail -< "Invalid branch depth."
     fr:frs -> id -< (branchInto fr):frs
 
-branchInto :: Frame -> Frame
-branchInto fr = case fr of
-    BlockFrame _   -> setIs []
-    LoopFrame _ is -> setIs is
-    where setIs is = set (bl P.. isB) is fr
-
 run :: Bl -> [Value]
 run b = (view getf run') ([BlockFrame b], [])

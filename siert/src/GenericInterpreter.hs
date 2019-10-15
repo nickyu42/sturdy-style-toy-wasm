@@ -6,6 +6,7 @@ module GenericInterpreter
 , IsVal(..)
 , ArrowFail(..)
 , drop
+, branchInto
 ) where
 
 import Prelude hiding (and, not, fail, id, const, (.), drop)
@@ -90,3 +91,9 @@ drop = proc (n, xs) -> case (n, xs) of
     (0, xs)   -> id -< xs
     (_, [])   -> id -< []
     (n, x:xs) -> drop -< (n - 1, xs)
+
+branchInto :: Frame -> Frame
+branchInto fr = case fr of
+    BlockFrame _   -> setIs []
+    LoopFrame _ is -> setIs is
+    where setIs is = set (bl P.. isB) is fr

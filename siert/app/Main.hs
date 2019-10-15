@@ -6,6 +6,6 @@ import TypeChecker
 
 main :: IO ()
 main = do
-    let program = branch1
+    let program = branchIf
     putStrLn $ check program
     putStrLn $ show (run program)

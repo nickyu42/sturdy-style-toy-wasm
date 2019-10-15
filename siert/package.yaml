@@ -49,3 +49,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - sturdy-practice
+    - hspec
+    - QuickCheck
