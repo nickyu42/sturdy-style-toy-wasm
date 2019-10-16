@@ -12,6 +12,7 @@ module Programs
 import Syntax
 import DirectStyleInterpreter
 import ConcreteInterpreter
+import TypeChecker
 
 addMul :: Bl
 addMul = Bl [Const (VNum 4),

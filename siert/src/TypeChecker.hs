@@ -52,16 +52,17 @@ instance IsVal Type TypeCheckerA where
     const     = arr typeOf
     br        = branch
     brIf      = proc (n, frs, tyPopped, tys) -> do
-                    _ <- expTy -< (tyPopped, TBool)
+                    expTy -< (tyPopped, TBool)
                     branch -< (n, frs, tys)
     exitFrame = proc (fr, tys) -> do
-                    _ <- expTys -< (view (bl . rty) fr, tys)
+                    let depthDiff = length tys - view depth fr
+                    expTys -< (view (bl . rty) fr, take depthDiff tys)
                     id -< ()
 
 binOp :: (ArrowChoice a, ArrowFail a)
          => Type -> Type -> a (Type, Type) Type
 binOp inty rty = proc (t1, t2) -> do
-    _ <- expTys -< ([t1, t2], [inty, inty])
+    expTys -< ([t1, t2], [inty, inty])
     id -< rty
 
 expTy :: (ArrowChoice a, ArrowFail a) => a (Type, Type) ()
@@ -72,7 +73,7 @@ expTy = proc (t_act, t_exp) -> if t_exp == t_act
 expTys :: (ArrowChoice a, ArrowFail a) => a ([Type], [Type]) ()
 expTys = proc lists -> case lists of
     ([], [])         -> id -< ()
-    (t1:ts1, t2:ts2) -> do _ <- expTy -< (t1, t2)
+    (t1:ts1, t2:ts2) -> do expTy -< (t1, t2)
                            expTys -< (ts1, ts2)
     _                -> fail -< "Type lists did not match in length."
 
@@ -82,11 +83,11 @@ branch = proc (n, frs, tys) -> do
     frs2 <- drop -< (n, frs)
     case frs2 of
         []          -> fail -< "Invalid branch depth."
-        fr2hd:fr2tl -> do _ <- expTys -< (view (bl . rty) fr2hd, tys)
+        fr2hd:fr2tl -> do expTys -< (view (bl . rty) fr2hd, tys)
                           id -< (branchInto fr2hd):fr2tl
 
 check' :: Bl -> Either String [Type]
-check' b = (view getf run') ([BlockFrame b], [])
+check' b = (view getf run') ([basicFrame b], [])
 
 check :: Bl -> String
 check b = case check' b of

@@ -9,8 +9,10 @@ module Syntax
 , isB
 , rty
 , bl
+, depth
 , allIs
 , typeOf
+, basicFrame
 ) where
 
 import Control.Lens hiding (Const)
@@ -45,8 +47,8 @@ data Type
 data Bl = Bl {_isB :: [Instr], _rty :: [Type]} deriving (Show, Eq)
 
 data Frame
-    = BlockFrame {_bl :: Bl}
-    | LoopFrame {_bl :: Bl, _allIs :: [Instr]}
+    = BlockFrame {_bl :: Bl, _depth :: Int}
+    | LoopFrame {_bl :: Bl, _depth :: Int, _allIs :: [Instr]}
 
 $(makeLenses ''Bl)
 $(makeLenses ''Frame)
@@ -55,3 +57,6 @@ typeOf :: Value -> Type
 typeOf v = case v of
     VBool _ -> TBool
     VNum _  -> TNum
+
+basicFrame :: Bl -> Frame
+basicFrame b = BlockFrame b 0

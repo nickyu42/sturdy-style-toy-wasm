@@ -7,7 +7,7 @@ import Control.Lens hiding (Const)
 import Control.Lens.TH
 
 run :: Bl -> [Value]
-run b = run' [BlockFrame b] []
+run b = run' [basicFrame b] []
 
 run' :: [Frame] -> [Value] -> [Value]
 run' frs1 vs1 = case step frs1 vs1 of
@@ -28,8 +28,9 @@ step frs vs = case frs of
             Lt      -> (frs', binopnum (\x y -> VBool (y < x)) vs)
             Copy    -> (frs', (head vs):vs)
             Const v -> (frs', v:vs)
-            Block b -> ((BlockFrame b):frs', vs)
-            Loop b  -> ((LoopFrame b (view isB b)):frs', vs)
+            Block b -> ((BlockFrame b (length vs)):frs', vs) -- This depth value
+                                                             -- is never read.
+            Loop b  -> ((LoopFrame b (length vs) (view isB b)):frs', vs)
             Br i    -> branch i frs' vs
             BrIf i  -> if (getBool (head vs)) then branch i frs' (tail vs)
                                               else (frs', tail vs)
@@ -43,5 +44,5 @@ step frs vs = case frs of
             binopbool         = binop getBool
             branch i frs vs   = (resetTopFrame (drop i frs), vs)
             resetTopFrame frs = case head frs of
-                fr@(BlockFrame _)   -> (set (bl . isB) [] fr):(tail frs)
-                fr@(LoopFrame _ is) -> (set (bl . isB) is fr):(tail frs)
+                fr@(BlockFrame _ _)   -> (set (bl . isB) [] fr):(tail frs)
+                fr@(LoopFrame _ _ is) -> (set (bl . isB) is fr):(tail frs)

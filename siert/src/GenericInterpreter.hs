@@ -57,8 +57,8 @@ step = proc (frs, vs) -> case frs of
                             vs3 <- push -< (v, vs2)
                             second push -< (frs', (v, vs3))
             Const val -> second (push <<< (first const)) -< (frs', (val, vs))
-            Block b   -> first push -< ((BlockFrame b, frs'), vs)
-            Loop b    -> first push -< ((LoopFrame b (view isB b),
+            Block b   -> first push -< ((BlockFrame b (length vs), frs'), vs)
+            Loop b    -> first push -< ((LoopFrame b (length vs) (view isB b),
                                          frs'), vs)
             Br n      -> first br -< ((n, frs', vs), vs)
             BrIf n    -> do (v, vs2) <- pop -< vs
@@ -94,6 +94,6 @@ drop = proc (n, xs) -> case (n, xs) of
 
 branchInto :: Frame -> Frame
 branchInto fr = case fr of
-    BlockFrame _   -> setIs []
-    LoopFrame _ is -> setIs is
+    BlockFrame _ _   -> setIs []
+    LoopFrame _ _ is -> setIs is
     where setIs is = set (bl P.. isB) is fr

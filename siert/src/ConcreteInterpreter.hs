@@ -72,4 +72,4 @@ branch = drop >>> proc frs2 -> case frs2 of
     fr:frs -> id -< (branchInto fr):frs
 
 run :: Bl -> [Value]
-run b = (view getf run') ([BlockFrame b], [])
+run b = (view getf run') ([basicFrame b], [])
